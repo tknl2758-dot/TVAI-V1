@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0a0a14">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TVAI Games">
+    <title>TVAI • متصفح الألعاب V1</title>
+    <style>
+        :root {
+            --bg-deep: #08080f;
+            --bg-primary: #0c0c1a;
+            --bg-secondary: #111126;
+            --bg-tertiary: #18183a;
+            --bg-card: #121232;
+            --bg-card-hover: #1a1a45;
+            --border-color: #1e1e40;
+            --text-primary: #e8e8f8;
+            --text-secondary: #a0a0c8;
+            --text-muted: #6a6a8a;
+            --accent-cyan: #00d4ff;
+            --accent-blue: #3b7fff;
+            --accent-purple: #7b3fff;
+            --accent-pink: #ff2d78;
+            --accent-green: #00ff88;
+            --accent-gold: #ffb800;
+            --glow-cyan: 0 0 20px rgba(0,212,255,0.3);
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 18px;
+            --radius-xl: 24px;
+            --font-sans: 'Inter', 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-size: 16px; -webkit-font-smoothing: antialiased; height: 100%; overflow: hidden; }
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            height: 100vh; height: 100dvh;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            background-image:
+                radial-gradient(ellipse at 15% 15%, rgba(0,212,255,0.06) 0%, transparent 55%),
+                radial-gradient(ellipse at 75% 55%, rgba(123,63,255,0.07) 0%, transparent 55%),
+                radial-gradient(ellipse at 50% 80%, rgba(168,85,247,0.05) 0%, transparent 45%);
+        }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-thumb { background: #2a2a48; border-radius: 10px; }
+
+        #app-shell { display: flex; flex-direction: column; height: 100%; }
+
+        #main-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 16px; flex-shrink: 0; z-index: 50;
+            background: rgba(10,10,20,0.9); backdrop-filter: blur(20px);
+        }
+        #main-header .logo {
+            font-size: 1.5rem; font-weight: 800;
+            background: linear-gradient(135deg, #00d4ff, #7b3fff);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        #main-header .version { font-size: 0.65rem; color: var(--text-muted); margin-right: 4px; }
+        #header-actions { display: flex; gap: 6px; align-items: center; }
+        .header-btn {
+            width: 34px; height: 34px; border-radius: 50%; border: none;
+            background: var(--bg-tertiary); color: var(--text-secondary);
+            cursor: pointer; font-size: 0.9rem; display: flex; align-items: center;
+            justify-content: center; transition: 0.2s;
+        }
+        .header-btn:hover { background: #252550; color: #fff; }
+        .header-btn.active { background: rgba(0,212,255,0.15); color: var(--accent-cyan); }
+
+        #address-row { display: flex; align-items: center; gap: 8px; padding: 4px 12px 10px; flex-shrink: 0; }
+        #address-bar-wrapper { flex: 1; position: relative; }
+        #address-bar {
+            width: 100%; padding: 10px 42px 10px 16px; border-radius: 22px;
+            border: 2px solid var(--border-color); background: var(--bg-secondary);
+            color: var(--text-primary); font-size: 0.85rem; outline: none;
+            font-family: var(--font-sans); transition: 0.3s;
+        }
+        #address-bar:focus { border-color: var(--accent-cyan); box-shadow: var(--glow-cyan); }
+        #btn-search-action {
+            position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+            width: 32px; height: 32px; border-radius: 50%; border: none;
+            background: var(--accent-cyan); color: #000; font-weight: 700;
+            cursor: pointer; font-size: 0.75rem;
+        }
+
+        #category-pills {
+            display: flex; gap: 8px; padding: 8px 14px 14px;
+            overflow-x: auto; flex-shrink: 0; scrollbar-width: none;
+        }
+        #category-pills::-webkit-scrollbar { display: none; }
+        .cat-pill {
+            padding: 9px 18px; border-radius: 20px; white-space: nowrap;
+            font-size: 0.8rem; font-weight: 600; cursor: pointer;
+            background: var(--bg-secondary); color: var(--text-secondary);
+            border: 1px solid var(--border-color); transition: 0.2s;
+            flex-shrink: 0; letter-spacing: 0.01em;
+        }
+        .cat-pill:hover { border-color: var(--accent-cyan); color: #fff; }
+        .cat-pill.active {
+            background: var(--accent-cyan); color: #000; border-color: var(--accent-cyan);
+            box-shadow: 0 0 20px rgba(0,212,255,0.3);
+        }
+
+        #content-area { flex: 1; overflow: hidden; position: relative; }
+        #game-discovery-view {
+            position: absolute; inset: 0; overflow-y: auto;
+            display: flex; flex-direction: column; padding-bottom: 20px;
+        }
+        #game-discovery-view.hidden, #iframe-container.hidden { display: none; }
+        #iframe-container { position: absolute; inset: 0; display: flex; flex-direction: column; }
+        #web-iframe { flex: 1; border: none; background: #1a1a1a; }
+
+        .game-section { padding: 8px 14px 4px; flex-shrink: 0; }
+        .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        .section-header h2 { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); }
+        .section-header .see-all { font-size: 0.75rem; color: var(--accent-cyan); cursor: pointer; text-decoration: none; font-weight: 500; }
+        .horizontal-scroll { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x mandatory; scrollbar-width: none; }
+        .horizontal-scroll::-webkit-scrollbar { display: none; }
+
+        .game-card-h {
+            flex-shrink: 0; width: 260px; background: var(--bg-card);
+            border-radius: var(--radius-lg); overflow: hidden;
+            cursor: pointer; border: 1px solid var(--border-color);
+            transition: 0.3s; scroll-snap-align: start;
+        }
+        .game-card-h:hover { border-color: rgba(0,212,255,0.4); transform: translateY(-3px); }
+        .game-card-h .card-img { width: 100%; height: 140px; object-fit: cover; background: var(--bg-tertiary); }
+        .game-card-h .card-info { padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
+        .game-card-h .card-info .game-name { font-weight: 700; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .game-card-h .card-info .game-meta { font-size: 0.65rem; color: var(--text-muted); }
+        .game-card-h .card-info .game-rating { font-weight: 700; color: var(--accent-gold); font-size: 0.8rem; }
+
+        #search-results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: 12px; padding: 8px 14px; }
+        .game-card-v {
+            background: var(--bg-card); border-radius: var(--radius-md);
+            overflow: hidden; cursor: pointer; border: 1px solid var(--border-color);
+            transition: 0.3s;
+        }
+        .game-card-v:hover { border-color: rgba(0,212,255,0.4); }
+        .game-card-v .card-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; background: var(--bg-tertiary); }
+        .game-card-v .card-info { padding: 10px; display: flex; flex-direction: column; gap: 3px; }
+        .game-card-v .game-name { font-weight: 700; font-size: 0.75rem; }
+        .game-card-v .game-meta { font-size: 0.6rem; color: var(--text-muted); }
+        .game-card-v .game-rating { font-weight: 700; color: var(--accent-gold); font-size: 0.7rem; }
+
+        /* Detail Overlay */
+        #game-detail-overlay {
+            position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.92);
+            backdrop-filter: blur(16px); display: flex; align-items: stretch;
+            justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.35s;
+        }
+        #game-detail-overlay.open { opacity: 1; pointer-events: all; }
+        #game-detail-container {
+            background: var(--bg-primary); width: 100%; max-width: 900px;
+            overflow-y: auto; box-shadow: 0 24px 70px rgba(0,0,0,0.7);
+            transform: translateY(30px) scale(0.96); transition: transform 0.4s;
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+        }
+        #game-detail-overlay.open #game-detail-container { transform: translateY(0) scale(1); }
+        #detail-close-btn {
+            position: absolute; top: 14px; right: 14px; width: 38px; height: 38px;
+            border-radius: 50%; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+            color: #fff; border: none; cursor: pointer; z-index: 10; font-size: 1.2rem;
+        }
+        #detail-hero {
+            position: relative; width: 100%; min-height: 240px; max-height: 350px;
+            background: var(--bg-tertiary); overflow: hidden;
+        }
+        #detail-hero img { width: 100%; height: 100%; object-fit: cover; }
+        #detail-info-section { padding: 16px 20px 8px; margin-top: -36px; position: relative; z-index: 2; }
+        #detail-title { font-size: 1.6rem; font-weight: 800; color: #fff; }
+        .detail-meta-badge {
+            padding: 4px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 600;
+            display: inline-block; margin-right: 4px; margin-top: 4px;
+            background: rgba(0,212,255,0.1); color: var(--accent-cyan);
+        }
+        .detail-btn {
+            padding: 8px 16px; border-radius: 18px; border: none; font-weight: 600;
+            cursor: pointer; margin-right: 6px; margin-top: 6px; font-size: 0.78rem;
+        }
+        .detail-btn.primary { background: var(--accent-cyan); color: #000; }
+        #detail-about { padding: 0 20px 12px; }
+        #detail-screenshots { padding: 0 20px 16px; }
+        #screenshots-scroll { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; }
+        #screenshots-scroll img {
+            width: 220px; height: 130px; object-fit: cover; border-radius: var(--radius-md); flex-shrink: 0;
+        }
+        #detail-similar { padding: 0 20px 20px; }
+        #similar-games-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(130px,1fr)); gap: 10px;
+        }
+        .similar-game-card {
+            background: var(--bg-card); border-radius: var(--radius-md); overflow: hidden;
+            cursor: pointer; border: 1px solid var(--border-color);
+        }
+        .similar-game-card .sim-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; background: var(--bg-tertiary); }
+        .similar-game-card .sim-info { padding: 8px 10px; font-size: 0.7rem; }
+
+        @media (max-width:768px) {
+            .game-card-h { width: 200px; }
+            .game-card-h .card-img { height: 110px; }
+        }
+    </style>
+</head>
+<body>
+<div id="app-shell">
+    <div id="main-header">
+        <div style="display:flex;align-items:baseline;gap:2px;">
+            <span class="logo">TVAI</span>
+            <span class="version">V1</span>
+        </div>
+        <div id="header-actions">
+            <button class="header-btn" id="btn-safe-search" title="البحث الآمن">🛡️</button>
+            <button class="header-btn" id="btn-favorites" title="المفضلة">❤️</button>
+            <button class="header-btn" id="btn-home" title="الرئيسية">🏠</button>
+        </div>
+    </div>
+    <div id="address-row">
+        <div id="address-bar-wrapper">
+            <input type="text" id="address-bar" placeholder="ابحث عن لعبة أو أدخل رابط..." autocomplete="off">
+            <button id="btn-search-action">▶</button>
+        </div>
+    </div>
+    <div id="category-pills">
+        <button class="cat-pill active" data-cat="top-rated">⭐ الأعلى تقييماً</button>
+        <button class="cat-pill" data-cat="new-releases">🆕 إصدارات جديدة</button>
+        <button class="cat-pill" data-cat="upcoming">📅 قادمة</button>
+        <button class="cat-pill" data-cat="popular">🔥 الأكثر شعبية</button>
+        <button class="cat-pill" data-cat="free">🆓 ألعاب مجانية</button>
+        <button class="cat-pill" data-cat="multiplayer">👥 متعددة اللاعبين</button>
+        <button class="cat-pill" data-cat="search">🔍 بحث</button>
+    </div>
+    <div id="content-area">
+        <div id="game-discovery-view"></div>
+        <div id="iframe-container" class="hidden"><iframe id="web-iframe" sandbox="allow-scripts allow-same-origin allow-popups"></iframe></div>
+    </div>
+</div>
+
+<!-- Detail Overlay -->
+<div id="game-detail-overlay">
+    <div id="game-detail-container">
+        <button id="detail-close-btn">✕</button>
+        <div id="detail-hero"><img id="detail-hero-img" src=""></div>
+        <div id="detail-info-section">
+            <h2 id="detail-title"></h2>
+            <div>
+                <span class="detail-meta-badge" id="detail-rating-badge"></span>
+                <span class="detail-meta-badge" id="detail-date-badge"></span>
+                <span class="detail-meta-badge" id="detail-genre-badge"></span>
+            </div>
+            <div style="margin-top:8px">
+                <button class="detail-btn primary" id="detail-btn-similar">🔍 ألعاب مشابهة</button>
+                <button class="detail-btn secondary" id="detail-btn-fav">❤️</button>
+            </div>
+        </div>
+        <div id="detail-about"><h3>📖 نبذة</h3><p id="detail-desc"></p></div>
+        <div id="detail-screenshots"><h3>📸 لقطات</h3><div id="screenshots-scroll"></div></div>
+        <div id="detail-similar"><h3>🎯 ألعاب مشابهة</h3><div id="similar-games-grid"></div></div>
+    </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// 🛡️ حماية أساسية ضد أدوات المطورين
+// ══════════════════════════════════════════════
+(function() {
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('keydown', e => {
+        if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) || (e.ctrlKey && e.key === 'U')) {
+            e.preventDefault();
+            return false;
+        }
+    });
+    let threshold = 160;
+    window.addEventListener('resize', () => {
+        if (Math.abs(window.outerWidth - window.innerWidth) > threshold) {
+            document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#ff2d78;font-size:2rem;">⛔ تم اكتشاف أدوات المطورين</div>';
+        }
+    });
+})();
+
+// ══════════════════════════════════════════════
+// 🔑 استرجاع المفاتيح (تشفير Base64 بسيط)
+// ══════════════════════════════════════════════
+const _k1 = 'N2ViNzFkZTE1YTM2NDczODg2M2I0YjFmOGI0OGEwYTE='; // RAWG key
+const RAWG_KEY = atob(_k1);
+const RAWG_BASE = 'https://api.rawg.io/api';
+
+const CONFIG = {
+    BLOCKED_TAGS: ['nudity','sexual-content','nsfw','hentai','adult']
+};
+
+// ══════════════════════════════════════════════
+// 📦 الحالة العامة
+// ══════════════════════════════════════════════
+const $ = s => document.querySelector(s);
+const D = {
+    addr: $('#address-bar'), btnGo: $('#btn-search-action'), btnHome: $('#btn-home'),
+    btnSafe: $('#btn-safe-search'), btnFav: $('#btn-favorites'),
+    discovery: $('#game-discovery-view'), iframeCont: $('#iframe-container'),
+    webIframe: $('#web-iframe'), catPills: document.querySelectorAll('#category-pills .cat-pill'),
+    overlay: $('#game-detail-overlay'), closeDetail: $('#detail-close-btn'),
+    heroImg: $('#detail-hero-img'), title: $('#detail-title'),
+    ratingBadge: $('#detail-rating-badge'), dateBadge: $('#detail-date-badge'),
+    genreBadge: $('#detail-genre-badge'), btnSim: $('#detail-btn-similar'),
+    btnFavDetail: $('#detail-btn-fav'), desc: $('#detail-desc'),
+    scrScroll: $('#screenshots-scroll'), simGrid: $('#similar-games-grid'),
+    favPanel: null, favList: null, favClose: null
+};
+
+let state = {
+    favs: JSON.parse(localStorage.getItem('tvai_fav')||'[]'),
+    safe: localStorage.getItem('tvai_safe')!=='false',
+    activeCat: 'top-rated',
+    topRated: [], newReleases: [], upcoming: [], popular: [],
+    freeGames: [], multiplayerGames: []
+};
+
+// ══════════════════════════════════════════════
+// 🧠 دوال مساعدة
+// ══════════════════════════════════════════════
+function saveFavs(){ localStorage.setItem('tvai_fav',JSON.stringify(state.favs)); }
+function isFav(id){ return state.favs.some(f=>f.id===id); }
+function addFav(g){ if(isFav(g.id))return false; state.favs.unshift({id:g.id,name:g.name,rating:g.rating,img:g.background_image,released:g.released,genres:g.genres}); saveFavs(); return true; }
+function removeFav(id){ const i=state.favs.findIndex(f=>f.id===id); if(i===-1)return false; state.favs.splice(i,1); saveFavs(); return true; }
+function toast(msg, duration=2200){ const t=document.createElement('div'); t.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#18183a;padding:10px 20px;border-radius:20px;z-index:999;font-size:0.8rem;'; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>{ t.style.opacity='0'; t.style.transition='0.3s'; setTimeout(()=>t.remove(),300); },duration); }
+function filterGames(games){ if(!state.safe)return games; return games.filter(g=>{ if(g.esrb_rating?.name==='Adults Only')return false; if(g.tags?.some(t=>CONFIG.BLOCKED_TAGS.includes(t.slug?.toLowerCase())))return false; return true; }); }
+
+async function api(endpoint,params={}){
+    const url=new URL(RAWG_BASE+endpoint);
+    url.searchParams.set('key',RAWG_KEY);
+    Object.entries(params).forEach(([k,v])=>v!==undefined&&url.searchParams.set(k,v));
+    const r=await fetch(url); if(!r.ok)throw new Error('API'); return r.json();
+}
+
+// ══════════════════════════════════════════════
+// 🎮 عرض الألعاب
+// ══════════════════════════════════════════════
+function gameCardH(g) {
+    const img=g.background_image||''; const r=g.rating?g.rating.toFixed(1):'N/A';
+    const date=g.released||''; const genre=g.genres?.[0]?.name||'';
+    return `<div class="game-card-h" data-id="${g.id}" onclick="window._openDetail(${g.id})">
+        <img class="card-img" src="${img}" loading="lazy" onerror="this.style.display='none'">
+        <div class="card-info">
+            <div class="game-name">${g.name}</div>
+            <div class="game-meta">${date} • ${genre}</div>
+            <div class="game-rating">⭐ ${r}</div>
+        </div>
+    </div>`;
+}
+function gameCardV(g) {
+    const img=g.background_image||''; const r=g.rating?g.rating.toFixed(1):'N/A';
+    return `<div class="game-card-v" data-id="${g.id}" onclick="window._openDetail(${g.id})">
+        <img class="card-img" src="${img}" loading="lazy" onerror="this.style.display='none'">
+        <div class="card-info">
+            <div class="game-name">${g.name}</div>
+            <div class="game-meta">${g.released||''}</div>
+            <div class="game-rating">⭐ ${r}</div>
+        </div>
+    </div>`;
+}
+
+async function loadAllData() {
+    try {
+        const [top, newR, up, pop, free, multi] = await Promise.all([
+            api('/games',{ordering:'-rating',page_size:10,metacritic:'80,100'}),
+            api('/games',{ordering:'-released',page_size:10,dates:'2024-01-01,2025-12-31'}),
+            api('/games',{ordering:'-added',page_size:10,dates:'2025-06-01,2026-12-31'}),
+            api('/games',{ordering:'-added',page_size:10}),
+            api('/games',{ordering:'-rating',page_size:10,tags:'free'}),
+            api('/games',{ordering:'-rating',page_size:10,tags:'multiplayer'})
+        ]);
+        state.topRated = filterGames(top.results||[]);
+        state.newReleases = filterGames(newR.results||[]);
+        state.upcoming = filterGames(up.results||[]);
+        state.popular = filterGames(pop.results||[]);
+        state.freeGames = filterGames(free.results||[]);
+        state.multiplayerGames = filterGames(multi.results||[]);
+    } catch(e) {
+        state.topRated=[]; state.newReleases=[]; state.upcoming=[]; state.popular=[];
+        state.freeGames=[]; state.multiplayerGames=[];
+    }
+}
+
+function renderHome() {
+    D.discovery.innerHTML = `
+        <div style="padding:8px 14px 0;"><p style="color:var(--text-muted);font-size:0.8rem;">Welcome to TVAI</p><p style="font-size:0.75rem;color:var(--text-muted);">Browse the web. Discover games. Download.</p></div>
+        ${sectionHTML('⭐ Top Rated', state.topRated.slice(0,6), 'top-rated')}
+        ${sectionHTML('🆕 New Releases', state.newReleases.slice(0,6), 'new-releases')}
+        ${sectionHTML('📅 Upcoming', state.upcoming.slice(0,6), 'upcoming')}
+        ${sectionHTML('🔥 Popular', state.popular.slice(0,6), 'popular')}
+        ${sectionHTML('🆓 Free Games', state.freeGames.slice(0,6), 'free')}
+        ${sectionHTML('👥 Multiplayer', state.multiplayerGames.slice(0,6), 'multiplayer')}
+    `;
+}
+
+function sectionHTML(title, games, seeAllCat) {
+    if(!games.length) return '';
+    return `<div class="game-section">
+        <div class="section-header">
+            <h2>${title}</h2>
+            <span class="see-all" onclick="document.querySelector('[data-cat=\\'${seeAllCat}\\']').click()">See all →</span>
+        </div>
+        <div class="horizontal-scroll">${games.map(g=>gameCardH(g)).join('')}</div>
+    </div>`;
+}
+
+function renderCategory(cat) {
+    let games=[], title='';
+    switch(cat){
+        case 'top-rated': games=state.topRated; title='⭐ Top Rated'; break;
+        case 'new-releases': games=state.newReleases; title='🆕 New Releases'; break;
+        case 'upcoming': games=state.upcoming; title='📅 Upcoming'; break;
+        case 'popular': games=state.popular; title='🔥 Popular'; break;
+        case 'free': games=state.freeGames; title='🆓 Free Games'; break;
+        case 'multiplayer': games=state.multiplayerGames; title='👥 Multiplayer'; break;
+        case 'search': D.addr.focus(); return;
+    }
+    D.discovery.innerHTML = `<div style="padding:12px 14px;"><h2>${title}</h2></div><div id="search-results-grid">${games.map(g=>gameCardV(g)).join('')}</div>`;
+}
+
+async function searchGames(q) {
+    D.discovery.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">⏳ جاري البحث...</div>';
+    try {
+        const data = await api('/games',{search:q,page_size:30,ordering:'-rating'});
+        const games = filterGames(data.results||[]);
+        D.discovery.innerHTML = `<div style="padding:12px 14px;"><h2>🔍 نتائج البحث عن "${q}"</h2></div><div id="search-results-grid">${games.map(g=>gameCardV(g)).join('')}</div>`;
+        if(!games.length) D.discovery.innerHTML += '<p style="text-align:center;color:var(--text-muted);padding:20px;">😔 لا توجد نتائج</p>';
+    } catch(e) {
+        D.discovery.innerHTML = '<p style="text-align:center;color:var(--accent-pink);padding:20px;">فشل البحث</p>';
+    }
+}
+
+// ══════════════════════════════════════════════
+// 🔍 صفحة التفاصيل
+// ══════════════════════════════════════════════
+async function openDetail(id){
+    D.overlay.classList.add('open');
+    D.title.textContent='جاري التحميل...'; D.desc.textContent='';
+    D.heroImg.style.display='none'; D.scrScroll.innerHTML=''; D.simGrid.innerHTML='';
+    try{
+        const game=await api(`/games/${id}`);
+        D.title.textContent=game.name;
+        D.ratingBadge.textContent=`⭐ ${game.rating||'N/A'}`;
+        D.dateBadge.textContent=`📅 ${game.released||'TBA'}`;
+        D.genreBadge.textContent=game.genres?.map(g=>g.name).join(' · ')||'';
+        D.desc.textContent=(game.description_raw||'').slice(0,800);
+        D.heroImg.src=game.background_image||''; D.heroImg.style.display=game.background_image?'block':'none';
+        const isF=isFav(game.id);
+        D.btnFavDetail.textContent=isF?'💖':'❤️';
+        D.btnFavDetail.onclick=()=>{
+            if(isFav(game.id)){ removeFav(game.id); D.btnFavDetail.textContent='❤️'; toast('تمت الإزالة'); }
+            else{ addFav(game); D.btnFavDetail.textContent='💖'; toast('تمت الإضافة'); }
+        };
+        D.btnSim.onclick=async()=>{
+            const sim=await api(`/games/${id}/suggested`,{page_size:12});
+            const fSim=filterGames(sim.results||[]);
+            if(fSim.length){
+                D.overlay.classList.remove('open');
+                D.discovery.innerHTML = `<div style="padding:12px 14px;"><h2>🎯 مشابهة لـ "${game.name}"</h2></div><div id="search-results-grid">${fSim.map(g=>gameCardV(g)).join('')}</div>`;
+            } else toast('لا توجد ألعاب مشابهة');
+        };
+        const scr=await api(`/games/${id}/screenshots`,{page_size:8});
+        D.scrScroll.innerHTML=(scr.results||[]).map(s=>`<img src="${s.image}" alt="لقطة">`).join('');
+        const simGames=await api(`/games/${id}/suggested`,{page_size:12});
+        const fSimGames=filterGames(simGames.results||[]);
+        D.simGrid.innerHTML=fSimGames.map(g=>`<div class="similar-game-card" onclick="window._openDetail(${g.id})"><img class="sim-img" src="${g.background_image||''}"><div class="sim-info"><div>${g.name}</div><small>⭐${g.rating||'?'}</small></div></div>`).join('');
+    }catch(e){ D.title.textContent='خطأ في تحميل اللعبة'; }
+}
+window._openDetail = id => openDetail(id);
+function closeDetail(){ D.overlay.classList.remove('open'); }
+D.closeDetail.onclick=closeDetail;
+D.overlay.onclick=e=>{ if(e.target===D.overlay)closeDetail(); };
+
+// ══════════════════════════════════════════════
+// 🛡️ البحث الآمن – إخلاء مسؤولية
+// ══════════════════════════════════════════════
+function showDisclaimer() {
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;';
+    modal.innerHTML = `
+        <div style="background:var(--bg-primary);padding:24px;border-radius:24px;max-width:400px;text-align:center;border:1px solid var(--border-color);">
+            <h2 style="color:var(--accent-pink);margin-bottom:12px;">⚠️ تحذير</h2>
+            <p style="color:var(--text-secondary);margin-bottom:20px;">أنت على وشك إيقاف البحث الآمن. المحتوى غير اللائق قد يظهر. مؤسس المتصفح <strong>غير مسؤول</strong> عن استخدامك.</p>
+            <button id="accept-risk" style="padding:10px 24px;border-radius:20px;background:var(--accent-pink);color:#fff;border:none;margin-right:8px;">أوافق وأتحمل المسؤولية</button>
+            <button id="decline-risk" style="padding:10px 24px;border-radius:20px;background:var(--bg-tertiary);color:var(--text-primary);border:1px solid var(--border-color);">تراجع</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    modal.querySelector('#accept-risk').onclick = () => {
+        state.safe = false;
+        localStorage.setItem('tvai_safe','false');
+        D.btnSafe.classList.remove('active');
+        D.btnSafe.textContent = '🔓';
+        toast('🔓 البحث الآمن معطّل. كن حذراً.');
+        loadAllData().then(renderHome);
+        modal.remove();
+    };
+    modal.querySelector('#decline-risk').onclick = () => { modal.remove(); };
+}
+D.btnSafe.onclick = () => {
+    if (state.safe) { showDisclaimer(); }
+    else {
+        state.safe = true;
+        localStorage.setItem('tvai_safe','true');
+        D.btnSafe.classList.add('active');
+        D.btnSafe.textContent = '🛡️';
+        toast('🛡️ البحث الآمن مفعّل');
+        loadAllData().then(renderHome);
+    }
+};
+
+// ══════════════════════════════════════════════
+// 🏷️ أزرار التصنيفات
+// ══════════════════════════════════════════════
+D.catPills.forEach(pill=>{
+    pill.onclick=()=>{
+        D.catPills.forEach(p=>p.classList.remove('active'));
+        pill.classList.add('active');
+        state.activeCat=pill.dataset.cat;
+        if(state.activeCat==='search'){ D.addr.focus(); return; }
+        renderCategory(state.activeCat);
+    };
+});
+
+// ══════════════════════════════════════════════
+// 🔎 شريط العنوان
+// ══════════════════════════════════════════════
+D.btnGo.onclick=()=>{
+    const v=D.addr.value.trim();
+    if(/^https?:\/\//.test(v)||/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(v)){
+        D.discovery.classList.add('hidden'); D.iframeCont.classList.remove('hidden');
+        D.webIframe.src=v.startsWith('http')?v:'https://'+v;
+    } else if(v) searchGames(v);
+};
+D.addr.onkeydown=e=>{ if(e.key==='Enter')D.btnGo.click(); };
+D.btnHome.onclick=()=>{ D.discovery.classList.remove('hidden'); D.iframeCont.classList.add('hidden'); renderHome(); D.addr.value=''; };
+
+// ══════════════════════════════════════════════
+// ❤️ لوحة المفضلة
+// ══════════════════════════════════════════════
+function createFavPanel(){
+    const p=document.createElement('div'); p.id='favorites-panel';
+    p.style.cssText='position:fixed;right:0;top:0;bottom:0;width:380px;max-width:90vw;background:var(--bg-primary);z-index:150;transform:translateX(100%);transition:0.35s;border-left:1px solid var(--border-color);overflow-y:auto;';
+    p.innerHTML=`<div style="padding:16px 20px;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;"><h3>❤️ المفضلة</h3><button id="fav-panel-close">✕</button></div><div id="fav-panel-list" style="padding:8px;"></div>`;
+    document.body.appendChild(p);
+    D.favPanel=p; D.favClose=$('#fav-panel-close'); D.favList=$('#fav-panel-list');
+    D.favClose.onclick=()=>D.favPanel.classList.remove('open');
+}
+createFavPanel();
+function renderFavList(){
+    D.favList.innerHTML=state.favs.map(f=>`<div style="display:flex;align-items:center;gap:10px;padding:10px;margin:4px 8px;background:var(--bg-card);border-radius:12px;cursor:pointer;" onclick="window._openDetail(${f.id})"><img src="${f.img||''}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" onerror="this.style.display='none'"><div style="flex:1"><strong style="font-size:0.8rem;">${f.name}</strong><br><small>⭐${f.rating||'?'}</small></div><button style="background:transparent;border:none;color:var(--text-muted);cursor:pointer;" onclick="event.stopPropagation();window._removeFav(${f.id})">✕</button></div>`).join('')||'<p style="text-align:center;color:var(--text-muted);padding:30px;">لا توجد مفضلات</p>';
+}
+window._removeFav = id => { removeFav(id); renderFavList(); };
+D.btnFav.onclick=()=>{ renderFavList(); D.favPanel.classList.toggle('open'); };
+
+// ══════════════════════════════════════════════
+// ⌨️ اختصارات
+// ══════════════════════════════════════════════
+document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){
+        if(D.overlay.classList.contains('open'))closeDetail();
+        if(D.favPanel?.classList.contains('open'))D.favPanel.classList.remove('open');
+    }
+});
+
+// ══════════════════════════════════════════════
+// 🚀 تشغيل أولي
+// ══════════════════════════════════════════════
+if(state.safe) { D.btnSafe.classList.add('active'); D.btnSafe.textContent='🛡️'; }
+else { D.btnSafe.classList.remove('active'); D.btnSafe.textContent='🔓'; }
+loadAllData().then(renderHome);
+</script>
+
+</body></html>
