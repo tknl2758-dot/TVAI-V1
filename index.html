@@ -6,6 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="TVAI Games">
+    <meta name="google-site-verification" content="sdTb3DjqoC8q7KIGJ1BVFu2pAtXr_FvLnjqojUveApQ">
     <title>TVAI • متصفح الألعاب V1</title>
     <style>
         :root {
@@ -243,7 +244,6 @@
     </div>
 </div>
 
-<!-- Detail Overlay -->
 <div id="game-detail-overlay">
     <div id="game-detail-container">
         <button id="detail-close-btn">✕</button>
@@ -267,15 +267,12 @@
 </div>
 
 <script>
-// ══════════════════════════════════════════════
-// 🛡️ حماية أساسية ضد أدوات المطورين
-// ══════════════════════════════════════════════
+// حماية أساسية
 (function() {
     document.addEventListener('contextmenu', e => e.preventDefault());
     document.addEventListener('keydown', e => {
         if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) || (e.ctrlKey && e.key === 'U')) {
-            e.preventDefault();
-            return false;
+            e.preventDefault(); return false;
         }
     });
     let threshold = 160;
@@ -286,20 +283,14 @@
     });
 })();
 
-// ══════════════════════════════════════════════
-// 🔑 استرجاع المفاتيح (تشفير Base64 بسيط)
-// ══════════════════════════════════════════════
-const _k1 = 'N2ViNzFkZTE1YTM2NDczODg2M2I0YjFmOGI0OGEwYTE='; // RAWG key
+// استرجاع مفتاح RAWG
+const _k1 = 'N2ViNzFkZTE1YTM2NDczODg2M2I0YjFmOGI0OGEwYTE=';
 const RAWG_KEY = atob(_k1);
 const RAWG_BASE = 'https://api.rawg.io/api';
-
 const CONFIG = {
     BLOCKED_TAGS: ['nudity','sexual-content','nsfw','hentai','adult']
 };
 
-// ══════════════════════════════════════════════
-// 📦 الحالة العامة
-// ══════════════════════════════════════════════
 const $ = s => document.querySelector(s);
 const D = {
     addr: $('#address-bar'), btnGo: $('#btn-search-action'), btnHome: $('#btn-home'),
@@ -323,9 +314,6 @@ let state = {
     freeGames: [], multiplayerGames: []
 };
 
-// ══════════════════════════════════════════════
-// 🧠 دوال مساعدة
-// ══════════════════════════════════════════════
 function saveFavs(){ localStorage.setItem('tvai_fav',JSON.stringify(state.favs)); }
 function isFav(id){ return state.favs.some(f=>f.id===id); }
 function addFav(g){ if(isFav(g.id))return false; state.favs.unshift({id:g.id,name:g.name,rating:g.rating,img:g.background_image,released:g.released,genres:g.genres}); saveFavs(); return true; }
@@ -340,9 +328,6 @@ async function api(endpoint,params={}){
     const r=await fetch(url); if(!r.ok)throw new Error('API'); return r.json();
 }
 
-// ══════════════════════════════════════════════
-// 🎮 عرض الألعاب
-// ══════════════════════════════════════════════
 function gameCardH(g) {
     const img=g.background_image||''; const r=g.rating?g.rating.toFixed(1):'N/A';
     const date=g.released||''; const genre=g.genres?.[0]?.name||'';
@@ -438,9 +423,6 @@ async function searchGames(q) {
     }
 }
 
-// ══════════════════════════════════════════════
-// 🔍 صفحة التفاصيل
-// ══════════════════════════════════════════════
 async function openDetail(id){
     D.overlay.classList.add('open');
     D.title.textContent='جاري التحميل...'; D.desc.textContent='';
@@ -479,9 +461,6 @@ function closeDetail(){ D.overlay.classList.remove('open'); }
 D.closeDetail.onclick=closeDetail;
 D.overlay.onclick=e=>{ if(e.target===D.overlay)closeDetail(); };
 
-// ══════════════════════════════════════════════
-// 🛡️ البحث الآمن – إخلاء مسؤولية
-// ══════════════════════════════════════════════
 function showDisclaimer() {
     const modal = document.createElement('div');
     modal.style.cssText = 'position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;';
@@ -517,9 +496,6 @@ D.btnSafe.onclick = () => {
     }
 };
 
-// ══════════════════════════════════════════════
-// 🏷️ أزرار التصنيفات
-// ══════════════════════════════════════════════
 D.catPills.forEach(pill=>{
     pill.onclick=()=>{
         D.catPills.forEach(p=>p.classList.remove('active'));
@@ -530,9 +506,6 @@ D.catPills.forEach(pill=>{
     };
 });
 
-// ══════════════════════════════════════════════
-// 🔎 شريط العنوان
-// ══════════════════════════════════════════════
 D.btnGo.onclick=()=>{
     const v=D.addr.value.trim();
     if(/^https?:\/\//.test(v)||/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(v)){
@@ -543,9 +516,6 @@ D.btnGo.onclick=()=>{
 D.addr.onkeydown=e=>{ if(e.key==='Enter')D.btnGo.click(); };
 D.btnHome.onclick=()=>{ D.discovery.classList.remove('hidden'); D.iframeCont.classList.add('hidden'); renderHome(); D.addr.value=''; };
 
-// ══════════════════════════════════════════════
-// ❤️ لوحة المفضلة
-// ══════════════════════════════════════════════
 function createFavPanel(){
     const p=document.createElement('div'); p.id='favorites-panel';
     p.style.cssText='position:fixed;right:0;top:0;bottom:0;width:380px;max-width:90vw;background:var(--bg-primary);z-index:150;transform:translateX(100%);transition:0.35s;border-left:1px solid var(--border-color);overflow-y:auto;';
@@ -561,9 +531,6 @@ function renderFavList(){
 window._removeFav = id => { removeFav(id); renderFavList(); };
 D.btnFav.onclick=()=>{ renderFavList(); D.favPanel.classList.toggle('open'); };
 
-// ══════════════════════════════════════════════
-// ⌨️ اختصارات
-// ══════════════════════════════════════════════
 document.addEventListener('keydown',e=>{
     if(e.key==='Escape'){
         if(D.overlay.classList.contains('open'))closeDetail();
@@ -571,9 +538,6 @@ document.addEventListener('keydown',e=>{
     }
 });
 
-// ══════════════════════════════════════════════
-// 🚀 تشغيل أولي
-// ══════════════════════════════════════════════
 if(state.safe) { D.btnSafe.classList.add('active'); D.btnSafe.textContent='🛡️'; }
 else { D.btnSafe.classList.remove('active'); D.btnSafe.textContent='🔓'; }
 loadAllData().then(renderHome);
